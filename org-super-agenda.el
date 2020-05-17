@@ -121,7 +121,7 @@
 ;;;; Variables
 
 (defconst org-super-agenda-special-selectors
-  '(:name :order :face :transformer)
+  '(:name :order :face :transformer :forward)
   ;; This needs to be manually updated if any are added.
   "Special, non-grouping selectors.")
 
@@ -181,7 +181,9 @@ disabled.  This sets the INHERIT argument to `org-entry-get'."
   :type 'boolean)
 
 (defcustom org-super-agenda-unmatched-name "Other items"
-  "Default name for agenda section containing items unmatched by any filter."
+  "Default name for agenda section containing items unmatched by any filter.
+If this is NIL, no section is added for items which gets to this point,
+and any items not matched by other groups will be silently discarded."
   :type 'string)
 
 (defcustom org-super-agenda-unmatched-order 99
@@ -835,9 +837,10 @@ The string should be the priority cookie letter, e.g. \"A\".")
                  and do (setq all-items non-matching)
 
                  ;; Sort sections by :order then :name
-                 finally do (setq non-matching (list :name org-super-agenda-unmatched-name
-                                                     :items non-matching
-                                                     :order org-super-agenda-unmatched-order))
+                 finally do (setq non-matching (and org-super-agenda-unmatched-name
+                                                    (list :name org-super-agenda-unmatched-name
+                                                          :items non-matching
+                                                          :order org-super-agenda-unmatched-order)))
                  finally do (setq sections (--sort (let ((o-it (plist-get it :order))
                                                          (o-other (plist-get other :order)))
                                                      (cond ((and
@@ -1075,7 +1078,7 @@ see."
            ;; This is the implicit OR
            append matching into all-matches
            and collect auto-section-name into names
-           and do (setq items non-matching)
+           and do (setq items (append non-matching (and (memq :forward group) matching)))
            for name = (if (stringp (car names))
                           (s-join " and " (-non-nil names))
                         ;; Probably an :auto-group
