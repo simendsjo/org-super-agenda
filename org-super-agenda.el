@@ -1078,7 +1078,7 @@ see."
            ;; This is the implicit OR
            append matching into all-matches
            and collect auto-section-name into names
-           and do (setq items (append non-matching (and (memq :forward group) matching)))
+           and do (setq items (if (memq :forward group) items non-matching))
            for name = (if (stringp (car names))
                           (s-join " and " (-non-nil names))
                         ;; Probably an :auto-group
